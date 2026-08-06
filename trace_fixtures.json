@@ -1,0 +1,177 @@
+[
+  {
+    "trace_id": "trace_001",
+    "start_time": "2023-10-27T10:00:00Z",
+    "end_time": "2023-10-27T10:01:30Z",
+    "status": "COMPLETED",
+    "steps": [
+      {
+        "timestamp": "2023-10-27T10:00:01Z",
+        "agent_id": "Planner",
+        "step_type": "LLM_INPUT",
+        "content": {
+          "prompt": "You are a task planner. Plan the steps to deploy a web application."
+        }
+      },
+      {
+        "timestamp": "2023-10-27T10:00:15Z",
+        "agent_id": "Planner",
+        "step_type": "LLM_OUTPUT",
+        "content": {
+          "plan": [
+            "1. Provision infrastructure (VMs, DB)",
+            "2. Install dependencies",
+            "3. Deploy code",
+            "4. Configure firewall",
+            "5. Run tests"
+          ]
+        }
+      },
+      {
+        "timestamp": "2023-10-27T10:00:20Z",
+        "agent_id": "Provisioner",
+        "step_type": "AGENT_THOUGHT",
+        "content": {
+          "thought": "Starting infrastructure provisioning for step 1."
+        }
+      },
+      {
+        "timestamp": "2023-10-27T10:00:25Z",
+        "agent_id": "Provisioner",
+        "step_type": "TOOL_CALL",
+        "content": {
+          "tool_name": "create_vm",
+          "arguments": {
+            "name": "webapp-prod-01",
+            "region": "us-east-1",
+            "size": "t2.medium"
+          }
+        },
+        "metadata": {
+          "tool_version": "1.2.0"
+        }
+      },
+      {
+        "timestamp": "2023-10-27T10:00:40Z",
+        "agent_id": "Provisioner",
+        "step_type": "TOOL_OUTPUT",
+        "content": {
+          "status": "success",
+          "vm_ip": "192.168.1.100"
+        }
+      },
+      {
+        "timestamp": "2023-10-27T10:00:45Z",
+        "agent_id": "Deployer",
+        "step_type": "AGENT_THOUGHT",
+        "content": {
+          "thought": "Attempting to deploy code to the new VM."
+        }
+      },
+      {
+        "timestamp": "2023-10-27T10:00:50Z",
+        "agent_id": "Deployer",
+        "step_type": "TOOL_CALL",
+        "content": {
+          "tool_name": "deploy_code",
+          "arguments": {
+            "target_ip": "192.168.1.100",
+            "repo_url": "git@github.com:example/webapp.git",
+            "branch": "main"
+          }
+        }
+      },
+      {
+        "timestamp": "2023-10-27T10:01:05Z",
+        "agent_id": "Deployer",
+        "step_type": "ERROR",
+        "content": {
+          "error_message": "Deployment failed: SSH connection refused. Is port 22 open?",
+          "error_code": "SSH_CONN_REFUSED"
+        },
+        "metadata": {
+          "retry_attempt": 1
+        }
+      },
+      {
+        "timestamp": "2023-10-27T10:01:10Z",
+        "agent_id": "Planner",
+        "step_type": "OBSERVATION",
+        "content": {
+          "observation": "Deployer reported SSH connection refused. Need to check firewall rules or security groups."
+        }
+      }
+    ]
+  },
+  {
+    "trace_id": "trace_002",
+    "start_time": "2023-10-27T11:00:00Z",
+    "end_time": null,
+    "status": "IN_PROGRESS",
+    "steps": [
+      {
+        "timestamp": "2023-10-27T11:00:05Z",
+        "agent_id": "Reporter",
+        "step_type": "AGENT_THOUGHT",
+        "content": {
+          "thought": "Generating daily report for sales figures."
+        }
+      },
+      {
+        "timestamp": "2023-10-27T11:00:10Z",
+        "agent_id": "Reporter",
+        "step_type": "TOOL_CALL",
+        "content": {
+          "tool_name": "get_sales_data",
+          "arguments": {
+            "date": "yesterday"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "trace_id": "trace_003",
+    "start_time": "2023-10-27T12:00:00Z",
+    "end_time": "2023-10-27T12:00:30Z",
+    "status": "FAILED",
+    "steps": [
+      {
+        "timestamp": "2023-10-27T12:00:01Z",
+        "agent_id": "DataProcessor",
+        "step_type": "LLM_INPUT",
+        "content": {
+          "prompt": "Analyze the customer feedback for sentiment."
+        }
+      },
+      {
+        "timestamp": "2023-10-27T12:00:10Z",
+        "agent_id": "DataProcessor",
+        "step_type": "TOOL_CALL",
+        "content": {
+          "tool_name": "load_customer_feedback",
+          "arguments": {
+            "source": "s3://my-bucket/feedback.csv"
+          }
+        }
+      },
+      {
+        "timestamp": "2023-10-27T12:00:25Z",
+        "agent_id": "DataProcessor",
+        "step_type": "ERROR",
+        "content": {
+          "error_message": "S3 bucket 'my-bucket' not found or access denied.",
+          "error_code": "S3_ACCESS_DENIED"
+        }
+      },
+      {
+        "timestamp": "2023-10-27T12:00:28Z",
+        "agent_id": "DataProcessor",
+        "step_type": "OBSERVATION",
+        "content": {
+          "observation": "Critical failure during data loading. Check S3 permissions."
+        }
+      }
+    ]
+  }
+]
