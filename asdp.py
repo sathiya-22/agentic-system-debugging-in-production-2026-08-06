@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.syntax import Syntax
 from rich.panel import Panel
 from rich.table import Table
+from rich.text import Text
 
 app = typer.Typer(help="Agentic System Debugger for Production (ASDP)")
 console = Console()
@@ -44,9 +45,16 @@ def load_traces() -> Dict[str, AgentTrace]:
     if not TRACE_FIXTURES_PATH.exists():
         console.log(f"Error: Fixture file not found at {TRACE_FIXTURES_PATH}", style="red")
         return {}
-    with open(TRACE_FIXTURES_PATH, 'r') as f:
-        data = json.load(f)
-    return {t['trace_id']: AgentTrace(**t) for t in data}
+    try:
+        with open(TRACE_FIXTURES_PATH, 'r') as f:
+            data = json.load(f)
+        return {t['trace_id']: AgentTrace(**t) for t in data}
+    except json.JSONDecodeError as e:
+        console.log(f"Error decoding JSON from {TRACE_FIXTURES_PATH}: {e}", style="red")
+        return {}
+    except Exception as e:
+        console.log(f"An unexpected error occurred while loading traces: {e}", style="red")
+        return {}
 
 @app.command()
 def list():
@@ -83,11 +91,15 @@ def view(trace_id: str):
                         title="[bold green]Trace Overview[/bold green]", expand=False))
 
     for i, step in enumerate(trace.steps):
-        console.print(Panel(f"[bold yellow]Step {i + 1}[/bold yellow] - [dim]{step.timestamp}[/dim]\n"
-                            f"[bold magenta]Agent:[/bold magenta] {step.agent_id}\n"
-                            f"[bold magenta]Type:[/bold magenta] {step.step_type.value}\n"
+        step_title = Text(f"Step {i + 1}", style="bold yellow")
+        step_title.append(f" - {step.timestamp}", style="dim")
+        step_title.append(f" - {step.step_type.value}", style="bold magenta")
+        if step.step_type == StepType.ERROR:
+            step_title.append(" [ERROR]", style="bold red reverse")
+
+        console.print(Panel(f"[bold magenta]Agent:[/bold magenta] {step.agent_id}\n"
                             f"[bold cyan]Content:[/bold cyan]\n",
-                            title_align="left", expand=False))
+                            title=step_title, title_align="left", expand=False))
         syntax = Syntax(json.dumps(step.content, indent=2), "json", theme="monokai", line_numbers=True)
         console.print(syntax)
         if step.metadata:
@@ -142,11 +154,15 @@ def query(
                                 f"[bold blue]Start Time:[/bold blue] {trace.start_time}",
                                 title="[bold green]Query Results[/bold green]", expand=False))
             for i, step in matching_steps:
-                console.print(Panel(f"[bold yellow]Step {i + 1}[/bold yellow] - [dim]{step.timestamp}[/dim]\n"
-                                    f"[bold magenta]Agent:[/bold magenta] {step.agent_id}\n"
-                                    f"[bold magenta]Type:[/bold magenta] {step.step_type.value}\n"
+                step_title = Text(f"Step {i + 1}", style="bold yellow")
+                step_title.append(f" - {step.timestamp}", style="dim")
+                step_title.append(f" - {step.step_type.value}", style="bold magenta")
+                if step.step_type == StepType.ERROR:
+                    step_title.append(" [ERROR]", style="bold red reverse")
+
+                console.print(Panel(f"[bold magenta]Agent:[/bold magenta] {step.agent_id}\n"
                                     f"[bold cyan]Content:[/bold cyan]\n",
-                                    title_align="left", expand=False))
+                                    title=step_title, title_align="left", expand=False))
                 syntax = Syntax(json.dumps(step.content, indent=2), "json", theme="monokai", line_numbers=True)
                 console.print(syntax)
                 if step.metadata:

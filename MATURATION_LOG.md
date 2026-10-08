@@ -1,0 +1,1 @@
+2026-10-08: Added error handling for JSON decoding issues in the trace fixture file and enhanced the 'view' and 'query' commands to highlight ERROR steps with a distinct style in the Rich panel title.
